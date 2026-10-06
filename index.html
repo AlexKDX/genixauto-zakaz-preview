@@ -459,12 +459,27 @@ const DESIGNS=[
       },()=>{fl.style.transform='';let n=0;const iv=setInterval(()=>{bulbs.forEach(b=>b.setAttribute('fill',n%2?'#fff6c2':'#5a4a1a'));if(++n>7){clearInterval(iv);bulbs.forEach(b=>b.setAttribute('fill','#fff6c2'))}},140);done()});
     }};
   }},
+{ name:'Минимал', desc:'Плоское, два цвета и акцент, без «казино»',
+  build(host,mini){
+    const cx=200,cy=200;let s='<g class="rotor">';
+    const SHORT={'Скидка 5 000 ₽':['Скидка','5 000 ₽'],'Скидка 10 000 ₽':['Скидка','10 000 ₽'],'Полный бак':['Полный','бак'],'Химчистка авто':['Химчистка','авто']};
+    SEG.forEach((g,i)=>{const [a,b]=SHORT[g.p],mid=(i+.5)*SD;
+      s+=`<path d="${sector(cx,cy,0,176,i*SD,(i+1)*SD)}" fill="${i%2?'#162a42':'#1d3652'}"/>`;
+      s+=`<g transform="rotate(${mid} ${cx} ${cy})"><text x="${cx}" y="${cy-132}" text-anchor="middle" fill="#fff" font-family="Manrope,sans-serif" font-weight="700" font-size="12.5" opacity=".8">${a}</text><text x="${cx}" y="${cy-114}" text-anchor="middle" fill="#fff" font-family="Manrope,sans-serif" font-weight="800" font-size="15">${b}</text></g>`});
+    for(let i=0;i<N;i++){const [x0,y0]=P(cx,cy,48,i*SD),[x1,y1]=P(cx,cy,176,i*SD);s+=`<line x1="${x0}" y1="${y0}" x2="${x1}" y2="${y1}" stroke="#0e1b2b" stroke-width="2"/>`}
+    s+=`<circle cx="${cx}" cy="${cy}" r="176" fill="none" stroke="#5fd193" stroke-width="5"/><circle cx="${cx}" cy="${cy}" r="48" fill="#0e1b2b" stroke="#5fd193" stroke-width="4"/><text x="${cx}" y="${cy+8}" text-anchor="middle" font-family="Manrope,sans-serif" font-weight="800" font-size="22" fill="#5fd193">G</text></g>`;
+    s+=`<path d="M200 4c-14 0-24 10-24 23 0 17 24 38 24 38s24-21 24-38c0-13-10-23-24-23z" fill="#5fd193" stroke="#0e1b2b" stroke-width="3"/><circle cx="200" cy="27" r="8" fill="#0e1b2b"/>`;
+    host.innerHTML=`<div class="dz mini-flat ${mini?'mini':''}"><svg viewBox="0 0 400 400" style="filter:drop-shadow(0 14px 26px rgba(0,0,0,.45))">${s}</svg></div>`;
+    const rot=host.querySelector('.rotor');let ang=0;
+    return {spin(i,done){const total=targetAngle(ang,i,6)-ang,from=ang,pf=profile(total,5.6,.5);
+      run(5.6,t=>{ang=from+pf(t).a;rot.style.transform=`rotate(${ang}deg)`},done)}};
+  }},
 ];
 
 /* ====== состояние и экраны ====== */
 let design=0, step='hero', qi=0, answers={}, prize=null, spinning=false, ctrl=null;
 const app=document.getElementById('app');
-try{const d=+localStorage.getItem('gx-wheel');if(d>=0&&d<5)design=d}catch(e){}
+try{const d=+localStorage.getItem('gx-wheel');if(d>=0&&d<DESIGNS.length)design=d}catch(e){}
 
 function bodyLabel(){const o=Q[0].o.find(x=>x.v===answers.body);return o?o.l:'—'}
 function optionsFor(q){if(!q.dyn)return q.o;return(BODY_BUDGET[answers.body]||Object.keys(BUDGETS)).map(k=>({v:k,l:BUDGETS[k].l,h:BUDGETS[k].h,img:BUDGETS[k].img}))}
@@ -473,7 +488,7 @@ function rippleOn(el){el.addEventListener('pointerdown',e=>{const r=el.getBoundi
 
 function render(){
   document.body.classList.toggle('dark',step!=='hero');
-  document.getElementById('lab').innerHTML=`Колесо ${design+1} / 5 · ${DESIGNS[design].name}<small>${DESIGNS[design].desc}</small>`;
+  document.getElementById('lab').innerHTML=`Колесо ${design+1} / ${DESIGNS.length} · ${DESIGNS[design].name}<small>${DESIGNS[design].desc}</small>`;
   ({hero:renderHero,quiz:renderQuiz,wheel:renderWheel,form:renderForm,thanks:renderThanks})[step]();
 }
 function startQuiz(){step='quiz';qi=0;render();scrollTo(0,0)}
@@ -578,7 +593,7 @@ function renderThanks(){
   document.getElementById('again').onclick=()=>{answers={};prize=null;qi=0;step='hero';render()};
 }
 
-function setDesign(d){if(spinning)return;design=(d+5)%5;try{localStorage.setItem('gx-wheel',design)}catch(e){}if(step==='wheel')prize=null;render()}
+function setDesign(d){if(spinning)return;design=(d+DESIGNS.length)%DESIGNS.length;try{localStorage.setItem('gx-wheel',design)}catch(e){}if(step==='wheel')prize=null;render()}
 document.getElementById('prev').onclick=()=>setDesign(design-1);
 document.getElementById('next').onclick=()=>setDesign(design+1);
 document.getElementById('jump').onclick=()=>{prize=null;step='wheel';render();scrollTo(0,0)};
