@@ -498,9 +498,7 @@ function renderThanks(){
    ${prize?`<div class="bonus-tag"><span>${PIC[prize]}</span>Приз «${prize}» закреплён за вами</div>`:''}
    <div><a class="btn" href="https://genixauto.ru" target="_blank" rel="noopener"><span class="shine"></span>Перейти на основной сайт →</a></div>
    <div class="socials"><a href="https://t.me/genixauto" target="_blank" rel="noopener" style="background:#2aa3e0" aria-label="Telegram">${I.tg}</a><a href="https://wa.me/79990585876" target="_blank" rel="noopener" style="background:#25d366" aria-label="WhatsApp">${I.wa}</a><a href="https://vk.com/genixauto" target="_blank" rel="noopener" style="background:#2787f5" aria-label="ВКонтакте">${I.vk}</a><a href="https://www.youtube.com/channel/UCC9hexAedmp34CEwEi9gW9w" target="_blank" rel="noopener" style="background:#e62117" aria-label="YouTube">${I.yt}</a></div>
-   <details class="tg-preview"><summary>Так заявка придёт в Telegram-группу (видно только в макете)</summary><pre>${tgMessage()}</pre></details>
-   <button class="btn ghost" id="again" style="margin-top:10px">Пройти заново</button></div></section>`;
-  document.getElementById('again').onclick=()=>{answers={};prize=null;qi=0;step='hero';render()};
+   <details class="tg-preview"><summary>Так заявка придёт в Telegram-группу (видно только в макете)</summary><pre>${tgMessage()}</pre></details></div></section>`;
 }
 
 render();
