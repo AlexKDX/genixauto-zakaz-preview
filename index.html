@@ -364,8 +364,8 @@ const DESIGNS=[
     s+=`<g class="rotor"><circle cx="200" cy="200" r="194" fill="#121212"/><circle cx="200" cy="200" r="186" fill="none" stroke="#2b2b2b" stroke-width="16" stroke-dasharray="14 9"/><circle cx="200" cy="200" r="168" fill="#1b1b1b"/>`;
     s+=`<text font-family="Manrope,sans-serif" font-weight="800" font-size="11" fill="#5a5a5a" letter-spacing="3"><textPath href="#${id}p">GENIXAUTO • 255/45 R19 • GENIXAUTO • 255/45 R19 • GENIXAUTO • 255/45 R19 •</textPath></text>`;
     s+=`<circle cx="200" cy="200" r="160" fill="url(#${id}r)"/>`;
-    SEG.forEach((g,i)=>{s+=`<path d="${sector(cx,cy,46,154,i*SD+2,(i+1)*SD-2)}" fill="${g.c}" opacity=".95"/>`+label(cx,cy,100,(i+.5)*SD,g,g.s.length>6?10.5:13)});
-    for(let i=0;i<N;i++){s+=`<g transform="rotate(${i*SD} 200 200)"><path d="M197.5 160L197 48h6l-.5 112z" fill="url(#${id}s)" stroke="#555" stroke-width=".6"/></g>`}
+    SEG.forEach((g,i)=>{s+=`<path d="${sector(cx,cy,40,154,i*SD,(i+1)*SD)}" fill="${g.c}" opacity=".95"/>`+label(cx,cy,100,(i+.5)*SD,g,g.s.length>6?10.5:13)});
+    for(let i=0;i<N;i++){s+=`<g transform="rotate(${i*SD} 200 200)"><path d="M197.5 160L197 46h6l-.5 114z" fill="url(#${id}s)" stroke="#555" stroke-width=".6"/></g>`}
     s+=`<circle cx="200" cy="200" r="44" fill="#2a2f36" stroke="url(#${id}s)" stroke-width="5"/>`;
     for(let i=0;i<5;i++){const [x,y]=P(200,200,28,i*72);s+=`<circle cx="${x}" cy="${y}" r="5" fill="#c9d0d8" stroke="#333"/>`}
     s+=`<text x="200" y="209" text-anchor="middle" font-family="Manrope,sans-serif" font-weight="800" font-size="24" fill="#fff">G</text></g>`;
