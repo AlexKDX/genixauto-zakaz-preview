@@ -187,6 +187,14 @@ h2{font-size:clamp(22px,3vw,32px);line-height:1.18;font-weight:800}
 .field input:focus{border-color:var(--green-l);outline:none}
 .field.err input{border-color:var(--red)}
 .err-msg{color:#ff7b72;font-size:13px;font-weight:700;display:none}
+.wish{margin-top:20px;padding:16px 16px 14px;border-radius:16px;border:2px dashed var(--gold);background:linear-gradient(180deg,rgba(245,197,66,.12),rgba(245,197,66,.03));box-shadow:0 0 0 4px rgba(245,197,66,.06)}
+.wish .wt{display:flex;gap:10px;align-items:flex-start;font-weight:800;font-size:15px;line-height:1.35;color:#fff}
+.wish .wt .ic{font-size:24px;line-height:1}
+.wish .wn{display:inline-block;margin-top:8px;font-size:12px;font-weight:800;color:#0e1b2b;background:var(--gold);border-radius:999px;padding:3px 10px}
+.wish .wh{font-size:13px;color:#c9d4e3;margin-top:6px;line-height:1.4}
+.wish textarea{display:block;width:100%;margin-top:10px;font:inherit;font-size:16px;padding:13px 14px;border:2px solid rgba(245,197,66,.45);border-radius:12px;background:var(--navy);color:#fff;resize:vertical;min-height:96px}
+.wish textarea::placeholder{color:#7f93ab}
+.wish textarea:focus{border-color:var(--gold);outline:none;box-shadow:0 0 0 4px rgba(245,197,66,.18)}
 .field.err .err-msg{display:block}
 .contacts{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px}
 .ct{position:relative;overflow:hidden;display:flex;flex-direction:column;align-items:center;gap:6px;padding:14px 6px;border:2px solid var(--navy-3);border-radius:12px;background:var(--navy);color:#fff;font-size:13px;font-weight:800;transition:.18s}
@@ -403,7 +411,7 @@ let design=0, step='hero', qi=0, answers={}, prize=null, prizeSeg=null, sent=fal
 /* память браузера: приз, сектор и ответы 30 дней (имя и телефон не сохраняем) */
 const KEY='gx_quiz_v1', TTL=30*864e5;
 function loadState(){try{const o=JSON.parse(localStorage.getItem(KEY)||'null');if(o&&o.t&&Date.now()-o.t<TTL)return o;localStorage.removeItem(KEY)}catch(_){}return null}
-function saveState(){try{if(!stateT)stateT=Date.now();const{name,phone,...a}=answers;localStorage.setItem(KEY,JSON.stringify({t:stateT,prize,seg:prizeSeg,sent,answers:a}))}catch(_){}}
+function saveState(){try{if(!stateT)stateT=Date.now();const{name,phone,comment,...a}=answers;localStorage.setItem(KEY,JSON.stringify({t:stateT,prize,seg:prizeSeg,sent,answers:a}))}catch(_){}}
 (()=>{const o=loadState();if(!o)return;stateT=o.t;answers=o.answers||{};prize=o.prize||null;prizeSeg=o.seg??null;sent=!!o.sent;step=sent&&prize?'thanks':prize?'wheel':'hero'})();
 const app=document.getElementById('app');
 
@@ -496,6 +504,9 @@ function renderForm(){
    <div class="field" id="fn"><label for="name">Ваше имя</label><input id="name" autocomplete="given-name" placeholder="Иван"><span class="err-msg">Укажите имя</span></div>
    <div class="field" id="fp"><label for="phone">Телефон</label><input id="phone" type="tel" inputmode="tel" autocomplete="tel" placeholder="+7 (999) 999-99-99"><span class="err-msg">Нужен номер из 11 цифр</span></div>
    <div class="field" id="fc"><label>Как удобнее связаться (можно несколько)</label><div class="contacts">${cts.map(([n,k,c])=>`<button type="button" class="ct" data-v="${n}"><span class="cic" style="background:${c}">${I[k]}</span>${n}</button>`).join('')}</div><span class="err-msg">Выберите хотя бы один способ</span></div>
+   <div class="wish"><div class="wt"><span class="ic">🚗</span><span>Оставьте ваш комментарий, если у вас есть определённая марка, модель и другие пожелания для автопривоза</span></div>
+     <span class="wn">Необязательно для заполнения</span><div class="wh">Если есть определённый вариант — впишите: марку, модель, год, объём двигателя, комплектацию. Посчитаем именно его.</div>
+     <textarea id="comment" maxlength="500" rows="3" placeholder="Например: Toyota Harrier 2021, 2.0 бензин, полный привод, пробег до 50 000 км"></textarea></div>
    <div class="field" id="fa"><label class="agree"><input class="form-check-input1" type="checkbox" id="agree1" name="agree1" checked required><span><a href="https://genixauto.ru/politika-konfidencialnosti.html" target="_blank" rel="noopener">Политика конфиденциальности</a></span></label><span class="err-msg">Поставьте галочку согласия с политикой конфиденциальности</span></div>
    <input type="text" id="hp" name="middle_name" tabindex="-1" autocomplete="off" aria-hidden="true" style="position:absolute;left:-9999px;width:1px;height:1px;opacity:0">
    <button class="btn" style="width:100%;margin-top:18px" type="submit"><span class="shine"></span>Получить подбор →</button>
@@ -512,7 +523,7 @@ function renderForm(){
     document.getElementById('fn').classList.toggle('err',!name);document.getElementById('fp').classList.toggle('err',dg.length!==11);document.getElementById('fc').classList.toggle('err',!sel.size);
     const ag=document.getElementById('agree1').checked;document.getElementById('fa').classList.toggle('err',!ag);
     if(!name||dg.length!==11||!sel.size||!ag)return;
-    Object.assign(answers,{name,phone:ph.value,contacts:[...sel].join(', ')});
+    Object.assign(answers,{name,phone:ph.value,contacts:[...sel].join(', '),comment:document.getElementById('comment').value.trim()});
     if(!LIVE){sent=true;saveState();step='thanks';render();scrollTo(0,0);return}
     const btn=e.target.querySelector('button[type=submit]'),er=document.getElementById('sendErr');
     if(btn.disabled)return;btn.disabled=true;er.style.display='none';
@@ -520,13 +531,13 @@ function renderForm(){
     (async()=>{try{
       if(!tt)tt=await fetch('timetrap.php',{cache:'no-store'}).then(r=>r.json());
       const fd=new FormData();
-      Object.entries({budget:BUDGETS[answers.budget]?.l||'',body:bodyLabel()==='—'?'':bodyLabel(),country:answers.country||'',priority:answers.priority||'',timing:answers.timing||'',wheel:answers.wheel||'',stage:answers.stage||'',contacts:answers.contacts,name,phone:ph.value,bonus:prize||'',agree1:'true',middle_name:document.getElementById('hp').value,form_ts:tt.ts,form_sig:tt.sig}).forEach(([k,v])=>fd.append(k,v));
+      Object.entries({budget:BUDGETS[answers.budget]?.l||'',body:bodyLabel()==='—'?'':bodyLabel(),country:answers.country||'',priority:answers.priority||'',timing:answers.timing||'',wheel:answers.wheel||'',stage:answers.stage||'',contacts:answers.contacts,comment:answers.comment||'',name,phone:ph.value,bonus:prize||'',agree1:'true',middle_name:document.getElementById('hp').value,form_ts:tt.ts,form_sig:tt.sig}).forEach(([k,v])=>fd.append(k,v));
       const r=await fetch('send.php',{method:'POST',body:fd}).then(r=>r.json());
       if(r.result==='success'){try{window.gxLead&&gxLead()}catch(_){}sent=true;saveState();step='thanks';render();scrollTo(0,0)}else{tt=null;fail(r.info)}
     }catch(_){tt=null;fail()}})();
   };
 }
-function tgMessage(){return `Новая заявка:\n\nБюджет: ${BUDGETS[answers.budget]?.l||'—'}\nТип: ${bodyLabel()}\nСтрана: ${answers.country||'—'}\nПриоритет: ${answers.priority||'—'}\nСрок: ${answers.timing||'—'}\nРуль: ${answers.wheel||'—'}\nЭтап: ${answers.stage||'—'}\nКонтакт: ${answers.contacts||'—'}\nИмя: ${answers.name||'—'}\nТелефон: ${answers.phone||'—'}\nБонус: ${prize||'—'}`}
+function tgMessage(){return `Новая заявка:\n\nБюджет: ${BUDGETS[answers.budget]?.l||'—'}\nТип: ${bodyLabel()}\nСтрана: ${answers.country||'—'}\nПриоритет: ${answers.priority||'—'}\nСрок: ${answers.timing||'—'}\nРуль: ${answers.wheel||'—'}\nЭтап: ${answers.stage||'—'}\nКонтакт: ${answers.contacts||'—'}\nИмя: ${answers.name||'—'}\nТелефон: ${answers.phone||'—'}\nБонус: ${prize||'—'}\nКомментарий: ${answers.comment||'—'}`}
 function renderThanks(){
   app.innerHTML=`<section class="screen"><div class="thanks"><img class="logow" src="${IMG.logo2}" alt="GENIXAUTO">
    <div class="big-check">${I.check}</div><h1>Спасибо! Заявка принята</h1>
