@@ -115,7 +115,9 @@ h2{font-size:clamp(22px,3vw,32px);line-height:1.18;font-weight:800}
 .legend li{display:flex;gap:10px;align-items:center;font-size:14px;font-weight:700;background:var(--navy-2);border:1px solid var(--navy-3);border-radius:10px;padding:10px 12px}
 .legend li span{font-size:20px}
 .prize{margin-top:16px;padding:16px;border-radius:14px;background:#123826;border:2px solid var(--green-l);display:none}
-.prize.show{display:block;animation:pop .45s}
+.prize.show,.won .prize{display:block;animation:pop .45s}
+.prize small{display:block;margin-top:4px;color:#c9d4e3;font-size:13px}
+.won .wintro,.won .qfoot{display:none}
 .prize b{display:block;font-size:24px;color:var(--green-l)}
 @keyframes pop{from{transform:scale(.85);opacity:0}to{transform:none;opacity:1}}
 .confetti{position:fixed;inset:0;pointer-events:none;z-index:60}
@@ -249,7 +251,16 @@ h2{font-size:clamp(22px,3vw,32px);line-height:1.18;font-weight:800}
 /* телефон: первый экран занимает ровно одно окно, без прокрутки (svh — высота с учётом панелей браузера) */
 @media (max-width:600px){
   .screen:has(>.hero){padding-block:10px}
-  body:has(.hero){padding-bottom:0}
+  body:has(.hero),body:has(.wheel-box){padding-bottom:0}
+  .screen:has(>.wheel-box){padding-block:10px}
+  .wheel-box{gap:12px}
+  .stage-wrap{gap:12px}
+  .stage{width:min(100%,max(230px,calc(100svh - 53px - 290px)))}
+  .wheel-box h2{font-size:clamp(21px,3.2svh,26px)}
+  .wheel-box .sub{font-size:14px;margin-top:6px}
+  .wheel-box .qfoot{margin-top:6px}
+  .prize{margin-top:0}
+  #spin{width:100%}
   .hdr img{height:36px}
   .hero{height:calc(100svh - 53px - 20px);min-height:430px}
   .hero-vis{flex:1 1 auto;aspect-ratio:auto;max-height:none;min-height:110px}
@@ -417,7 +428,7 @@ let design=0, step='hero', qi=0, answers={}, prize=null, prizeSeg=null, sent=fal
 const KEY='gx_quiz_v1', TTL=30*864e5;
 function loadState(){try{const o=JSON.parse(localStorage.getItem(KEY)||'null');if(o&&o.t&&Date.now()-o.t<TTL)return o;localStorage.removeItem(KEY)}catch(_){}return null}
 function saveState(){try{if(!stateT)stateT=Date.now();const{name,phone,comment,...a}=answers;localStorage.setItem(KEY,JSON.stringify({t:stateT,prize,seg:prizeSeg,sent,answers:a}))}catch(_){}}
-(()=>{const o=loadState();if(!o)return;stateT=o.t;answers=o.answers||{};prize=o.prize||null;prizeSeg=o.seg??null;sent=!!o.sent;step=sent&&prize?'thanks':prize?'wheel':'hero'})();
+(()=>{const o=loadState();if(!o)return;stateT=o.t;answers=o.answers||{};prize=o.prize||null;prizeSeg=o.seg??null;sent=!!o.sent;step=sent&&prize?'thanks':prize?'form':'hero'})();
 const app=document.getElementById('app');
 
 function bodyLabel(){const o=Q[0].o.find(x=>x.v===answers.body);return o?o.l:'—'}
@@ -426,6 +437,7 @@ const fortuneIcon=`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" st
 function rippleOn(el){el.addEventListener('pointerdown',e=>{const r=el.getBoundingClientRect(),d=Math.max(r.width,r.height),s=document.createElement('span');s.className='rip';s.style.cssText=`width:${d}px;height:${d}px;left:${e.clientX-r.left-d/2}px;top:${e.clientY-r.top-d/2}px`;el.appendChild(s);setTimeout(()=>s.remove(),650)})}
 
 function render(){
+  if(step==='wheel'&&prize&&!spinning)step='form';
   document.body.classList.toggle('dark',step!=='hero');
   ({hero:renderHero,quiz:renderQuiz,wheel:renderWheel,form:renderForm,thanks:renderThanks})[step]();
 }
@@ -464,26 +476,24 @@ function renderQuiz(){
 }
 
 function renderWheel(){
-  app.innerHTML=`<section class="screen"><div class="wheel-box"><div>
-     <div class="pill">🎡 Колесо фортуны</div>
-     <h2>${prize?'Ваш приз уже выпал':'Крутите колесо и заберите приз'}</h2><p class="sub">${prize?'Колесо крутится один раз. Заберите приз и оставьте контакты.':'Приз закрепим за вами и применим при заключении договора.'}</p>
-     <ul class="legend"><li><span>💰</span>Скидка 10 000 ₽</li><li><span>💸</span>Скидка 5 000 ₽</li><li><span>⛽</span>Полный бак бензина</li><li><span>🧽</span>Химчистка автомобиля</li></ul>
-     <div class="prize ${prize?'show':''}" id="prize">🎉 Ваш приз:<b id="prizeName">${prize?PIC[prize]+' '+prize:''}</b></div>
-     <div class="qfoot"><button class="btn ghost" id="back">← Назад</button><button class="btn" id="toForm" ${prize?'':'disabled'}>Забрать приз →</button></div>
-   </div><div class="stage-wrap"><div class="stage" id="stage"></div><button class="btn" id="spin" ${prize?'disabled':''}><span class="shine"></span>${prize?'Приз получен ✓':'🎡 Крутить колесо фортуны'}</button></div></div></section>`;
+  app.innerHTML=`<section class="screen"><div class="wheel-box"><div class="wtxt">
+     <div class="wintro"><h2>Крутите колесо и заберите приз</h2><p class="sub">Приз закрепим за вами и применим при заключении договора.</p></div>
+     <div class="prize" id="prize">🎉 Ваш приз:<b id="prizeName"></b><small>Переходим к оформлению…</small></div>
+     <div class="qfoot"><button class="btn ghost" id="back">← Назад</button></div>
+   </div><div class="stage-wrap"><div class="stage" id="stage"></div><button class="btn" id="spin"><span class="shine"></span>🎡 Крутить колесо фортуны</button></div></div></section>`;
   ctrl=DESIGNS[design].build(document.getElementById('stage'),false);
-  if(prize&&prizeSeg!==null)ctrl.set(prizeSeg);
-  const back=document.getElementById('back');
-  if(prize){back.textContent='✎ Изменить ответы';back.onclick=()=>{step='quiz';qi=0;render();scrollTo(0,0)}}
-  else back.onclick=()=>{step='quiz';qi=Q.length-1;render()};
-  document.getElementById('toForm').onclick=()=>{step='form';render();scrollTo(0,0)};
+  document.getElementById('back').onclick=()=>{if(spinning)return;step='quiz';qi=Q.length-1;render()};
   const go=async()=>{if(spinning||prize)return;spinning=true;const b=document.getElementById('spin');b.disabled=true;b.lastChild.textContent='Крутится…';
     let i;
     if(LIVE){try{const r=await fetch('spin.php',{method:'POST',credentials:'same-origin'}).then(r=>r.json());
       const idx=SEG.map((x,k)=>x.p===r.prize?k:-1).filter(k=>k>=0);if(r.result!=='ok'||!idx.length)throw 0;i=idx[Math.random()*idx.length|0]}
       catch(_){spinning=false;b.disabled=false;b.lastChild.textContent='🎡 Крутить колесо фортуны';return}}
     else i=pickSeg();
-    ctrl.spin(i,()=>{spinning=false;prize=SEG[i].p;prizeSeg=i;saveState();document.getElementById('prizeName').textContent=PIC[prize]+' '+prize;document.getElementById('prize').classList.add('show');document.getElementById('toForm').disabled=false;b.lastChild.textContent='Приз получен ✓';confetti()})};
+    ctrl.spin(i,()=>{prize=SEG[i].p;prizeSeg=i;saveState();
+      document.getElementById('prizeName').textContent=PIC[prize]+' '+prize;document.querySelector('.wheel-box').classList.add('won');
+      b.lastChild.textContent='Приз получен ✓';confetti();
+      /* сразу ведём к форме, чтобы человек не искал, что делать дальше */
+      setTimeout(()=>{spinning=false;if(step==='wheel'){step='form';render();scrollTo(0,0)}},2000)})};
   document.getElementById('spin').onclick=go;document.getElementById('stage').onclick=go;
 }
 function confetti(){
@@ -507,10 +517,12 @@ function renderForm(){
    <div class="field" id="fa"><label class="agree"><input class="form-check-input1" type="checkbox" id="agree1" name="agree1" checked required><span><a href="https://genixauto.ru/politika-konfidencialnosti.html" target="_blank" rel="noopener">Политика конфиденциальности</a></span></label><span class="err-msg">Поставьте галочку согласия с политикой конфиденциальности</span></div>
    <input type="text" id="hp" name="middle_name" tabindex="-1" autocomplete="off" aria-hidden="true" style="position:absolute;left:-9999px;width:1px;height:1px;opacity:0">
    <button class="btn" style="width:100%;margin-top:18px" type="submit"><span class="shine"></span>Получить подбор →</button>
+   ${prize?'<button type="button" class="btn ghost" id="editAns" style="display:block;margin:10px auto 0">✎ Изменить ответы</button>':''}
    <div id="sendErr" role="alert" style="display:none;margin-top:12px;color:#ff9b93;font-size:14px;text-align:center"></div>
 
   </form></section>`;
   let tt=null;if(LIVE)fetch('timetrap.php',{cache:'no-store'}).then(r=>r.json()).then(d=>tt=d).catch(()=>{});
+  const ea=document.getElementById('editAns');if(ea)ea.onclick=()=>{step='quiz';qi=0;render();scrollTo(0,0)};
   const sel=new Set();
   app.querySelectorAll('.ct').forEach(b=>{rippleOn(b);b.onclick=()=>{b.classList.toggle('sel');sel.has(b.dataset.v)?sel.delete(b.dataset.v):sel.add(b.dataset.v)}});
   const ph=document.getElementById('phone');
